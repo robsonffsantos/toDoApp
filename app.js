@@ -1,7 +1,6 @@
 const todoForm = document.getElementById('todo-form');
 const todoInput = document.getElementById('new-task');
 const todoList = document.getElementById('todo-list');
-let draggingElement = null;
 
 function addTodo(event) {
   event.preventDefault();
@@ -19,7 +18,6 @@ function addTodo(event) {
   }
 
   const li = document.createElement('li');
-  li.draggable = true;
   li.innerHTML = `
     <span>${taskText}</span>
     <div class="button-group">
@@ -31,15 +29,57 @@ function addTodo(event) {
     <ul class="subtask-container"></ul> <!-- Contêiner de subtarefas -->
   `;
 
-  li.querySelector('.complete-btn').addEventListener('click', () => {
+  const completeBtn = li.querySelector('.complete-btn');
+  const editBtn = li.querySelector('.edit-btn');
+  const deleteBtn = li.querySelector('.delete-btn');
+  const addSubtaskBtn = li.querySelector('.add-subtask-btn');
+
+  function disableTaskButtons(taskLi) {
+    const buttons = taskLi.querySelectorAll('.edit-btn, .delete-btn, .add-subtask-btn, .complete-btn');
+    buttons.forEach(btn => {
+      btn.disabled = true;
+      btn.style.opacity = '0.5';
+    });
+  }
+
+  function enableTaskButtons(taskLi) {
+    const buttons = taskLi.querySelectorAll('.edit-btn, .delete-btn, .add-subtask-btn, .complete-btn');
+    buttons.forEach(btn => {
+      btn.disabled = false;
+      btn.style.opacity = '1';
+    });
+  }
+
+  function markSubtasksComplete(taskLi) {
+    const subtasks = taskLi.querySelectorAll('.subtask');
+    subtasks.forEach(subtask => {
+      subtask.classList.add('completed');
+      disableTaskButtons(subtask);
+    });
+  }
+
+  completeBtn.addEventListener('click', () => {
     li.classList.toggle('completed');
+    
+    if (li.classList.contains('completed')) {
+      disableTaskButtons(li);
+      markSubtasksComplete(li);
+      completeBtn.disabled = false;
+      completeBtn.style.opacity = '1';
+    } else {
+      enableTaskButtons(li);
+      li.querySelectorAll('.subtask').forEach(subtask => {
+        subtask.classList.remove('completed');
+        enableTaskButtons(subtask);
+      });
+    }
   });
 
-  li.querySelector('.delete-btn').addEventListener('click', () => {
+  deleteBtn.addEventListener('click', () => {
     li.remove();
   });
 
-  li.querySelector('.edit-btn').addEventListener('click', () => {
+  editBtn.addEventListener('click', () => {
     const newTaskText = prompt("Edite a tarefa:", taskText);
     if (newTaskText && newTaskText.length <= 50) {
       li.querySelector('span').innerText = newTaskText.trim();
@@ -48,7 +88,7 @@ function addTodo(event) {
     }
   });
 
-  li.querySelector('.add-subtask-btn').addEventListener('click', () => {
+  addSubtaskBtn.addEventListener('click', () => {
     const subtaskText = prompt("Subtarefa:");
     if (subtaskText) {
       const subtaskLi = document.createElement('li');
@@ -56,67 +96,42 @@ function addTodo(event) {
       subtaskLi.innerHTML = `
         <span>${subtaskText.trim()}</span>
         <div class="button-group">
-          <button class="complete-subtask-btn">✔️</button>
-          <button class="edit-subtask-btn">✏️</button>
-          <button class="delete-subtask-btn">🗑️</button>
+          <button class="complete-btn">✔️</button>
+          <button class="edit-btn">✏️</button>
+          <button class="delete-btn">🗑️</button>
         </div>
       `;
-      
-      subtaskLi.querySelector('.complete-subtask-btn').addEventListener('click', () => {
+
+      const subCompleteBtn = subtaskLi.querySelector('.complete-btn');
+      const subEditBtn = subtaskLi.querySelector('.edit-btn');
+      const subDeleteBtn = subtaskLi.querySelector('.delete-btn');
+
+      subCompleteBtn.addEventListener('click', () => {
         subtaskLi.classList.toggle('completed');
+        if (subtaskLi.classList.contains('completed')) {
+          disableTaskButtons(subtaskLi);
+        } else {
+          enableTaskButtons(subtaskLi);
+        }
       });
-      
-      subtaskLi.querySelector('.edit-subtask-btn').addEventListener('click', () => {
+
+      subDeleteBtn.addEventListener('click', () => {
+        subtaskLi.remove();
+      });
+
+      subEditBtn.addEventListener('click', () => {
         const newSubtaskText = prompt("Edite a subtarefa:", subtaskText);
         if (newSubtaskText) {
           subtaskLi.querySelector('span').innerText = newSubtaskText.trim();
         }
       });
 
-      subtaskLi.querySelector('.delete-subtask-btn').addEventListener('click', () => {
-        subtaskLi.remove();
-      });
-
       li.querySelector('.subtask-container').appendChild(subtaskLi);
-    }
-  });
-
-  li.addEventListener('dragstart', (e) => {
-    draggingElement = li;
-    e.dataTransfer.effectAllowed = 'move';
-    setTimeout(() => li.classList.add('dragging'), 0);
-  });
-
-  li.addEventListener('dragend', () => {
-    draggingElement = null;
-    li.classList.remove('dragging');
-  });
-
-  li.addEventListener('dragover', (event) => {
-    event.preventDefault();
-    const afterElement = getDragAfterElement(todoList, event.clientY);
-    if (afterElement == null) {
-      todoList.appendChild(li);
-    } else {
-      todoList.insertBefore(li, afterElement);
     }
   });
 
   todoList.appendChild(li);
   todoInput.value = "";
-}
-
-function getDragAfterElement(list, y) {
-  const listElements = [...list.querySelectorAll('li:not(.dragging)')];
-  return listElements.reduce((closest, child) => {
-    const box = child.getBoundingClientRect();
-    const offset = y - box.top - box.height / 2;
-    if (offset < 0 && offset > closest.offset) {
-      return { offset: offset, element: child };
-    } else {
-      return closest;
-    }
-  }, { offset: Number.NEGATIVE_INFINITY }).element;
 }
 
 todoForm.addEventListener('submit', addTodo);
