@@ -7,11 +7,14 @@ Esta é uma aplicação simples de lista de tarefas que permite adicionar tarefa
 - Adicionar, editar e remover tarefas.
 - Adicionar subtarefas a uma tarefa principal.
 - Marcar tarefas e subtarefas como concluídas.
-- Desativar botões de edição e exclusão ao concluir tarefas principais ou subtarefas.
-- Subtarefas são automaticamente concluídas quando a tarefa principal é marcada como concluída.
 
 ## Tecnologias Utilizadas
 
 - HTML
 - CSS
 - JavaScript
+
+## Contato
+
+Se você tiver dúvidas ou sugestões, sinta-se à vontade para entrar em contato:
+- **LinkedIn:** [Robson Fernando](https://www.linkedin.com/in/robsonffdossantos/?locale=pt_BR)
